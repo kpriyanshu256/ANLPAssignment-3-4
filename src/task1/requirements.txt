@@ -1,0 +1,6 @@
+evaluate
+scikit-learn
+torch
+transformers
+bitsandbytes
+accelerate
