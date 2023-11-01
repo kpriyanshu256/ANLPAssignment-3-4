@@ -13,7 +13,6 @@ import torch.nn as nn
 # import bitsandbytes as bnb
 from transformers.trainer_pt_utils import get_parameter_names
 
-
 MAX_LEN = 512
 
 def preprocess_function(examples, **fn_kwargs):
@@ -49,19 +48,20 @@ def fine_tune(train_dataset, valid_dataset, checkpoints_path, id2label, label2id
     training_args = TrainingArguments(
         output_dir=checkpoints_path,
         learning_rate=2e-5,
-        per_device_train_batch_size=16,
+        per_device_train_batch_size=8,
         per_device_eval_batch_size=8,
-        num_train_epochs=3,
+        num_train_epochs=2,
         weight_decay=0.01,
         evaluation_strategy="epoch",
         save_strategy="epoch",
+        # eval_steps=250,
         load_best_model_at_end=True,
         report_to = "none",
-        gradient_accumulation_steps = 8,
+        gradient_accumulation_steps = 2,
         fp16 = True,
-        gradient_checkpointing = True,
+        # gradient_checkpointing = True,
         save_total_limit = 1,
-        max_steps = 10,
+        # max_steps = 10,
     )
     """
     decay_parameters = get_parameter_names(model, [nn.LayerNorm])
@@ -175,16 +175,10 @@ if __name__ == '__main__':
     set_seed(random_seed)
         
     dataset = load_dataset(args.dataset_name)    
-    dataset = dataset.class_encode_column("label")
-    train_ds = dataset['train']
-    train_ds = train_ds.train_test_split(test_size=0.3, 
-                                         seed = random_seed, 
-                                         stratify_by_column='label')
-    
-    
-    
-    train_dataset = train_ds['train']
-    valid_dataset = train_ds['test']
+    train_dataset = dataset['train']
+    valid_dataset = dataset["val"]
+    test_dataset = dataset["test"]
+   
     
     # train detector model
     logging.info("Starting training.......")
@@ -192,7 +186,7 @@ if __name__ == '__main__':
               f"subtask{subtask}/{random_seed}", id2label, label2id, model)
 
 
-    test_dataset = dataset['dev']
+    test_dataset = dataset['test']
     
     # test detector model
     results, predictions = test(test_dataset, f"subtask{subtask}/{random_seed}/best/", id2label, label2id)
@@ -204,4 +198,4 @@ if __name__ == '__main__':
 
     print(results)
     predictions_df = pd.DataFrame({'id': test_ids, 'label': predictions})
-    predictions_df.to_json(prediction_path, lines=True, orient='records')
+    predictions_df.to_json(f"subtask{subtask}/{random_seed}/{prediction_path}", lines=True, orient='records')

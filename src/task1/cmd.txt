@@ -1,1 +1,4 @@
 python train.py --dataset_name kpriyanshu256/semeval-task-8-a-mono --prediction_file_path preds.jsonl --subtask A --model roberta-large
+
+huggingface-cli login
+huggingface-cli upload roberta-large-mono-exp1 ./subtaskA/0/
