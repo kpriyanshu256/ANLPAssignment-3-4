@@ -1,0 +1,1 @@
+torchrun --nproc_per_node 1 baseline.py --train_file_path train.jsonl --test_file_path test.jsonl --prediction_file_path subtaskB_predictions.jsonl --subtask B --model roberta-large
